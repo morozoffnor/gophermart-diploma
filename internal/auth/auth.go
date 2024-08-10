@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/morozoffnor/gophermart-diploma/internal/config"
 )
@@ -11,7 +13,7 @@ var ContextUserID ContextUserIDKey = "user_id"
 
 type Auth struct {
 	cfg *config.Config
-	jwt *JWT
+	Jwt *JWT
 }
 
 type Claims struct {
@@ -23,13 +25,15 @@ type User struct {
 	Id            string `json:"userID"`
 	Login         string `json:"login"`
 	Password      string `json:"password"`
-	authenticated bool
+	Authenticated bool
 }
 
 func New(cfg *config.Config) *Auth {
-	return &Auth{cfg: cfg, jwt: &JWT{secret: "supersecret"}}
+	return &Auth{cfg: cfg, Jwt: &JWT{secret: "supersecret"}}
 }
 
-func (a *Auth) Register(u *User) (bool, error) {
-
+func (a *Auth) HashPassword(p string) string {
+	h := sha256.New()
+	h.Write([]byte(p))
+	return hex.EncodeToString(h.Sum(nil))
 }

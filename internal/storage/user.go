@@ -9,6 +9,18 @@ import (
 	"log"
 )
 
+func (db *DB) UserExists(ctx context.Context, login string) (bool, error) {
+	query := "SELECT EXISTS(SELECT 1 FROM users WHERE login=$1)"
+	var exists bool
+	err := db.pool.QueryRow(ctx, query, login).Scan(&exists)
+	if err != nil {
+		// решил тут возвращать именно true, чтобы случайно не создать
+		// ещё одного пользователя. Человеческий фактор, все дела ;)
+		return true, err
+	}
+	return exists, err
+}
+
 func (db *DB) GetUserCreds(userID string, ctx context.Context) (*auth.User, error) {
 	user := &auth.User{
 		Id: userID,
@@ -23,9 +35,9 @@ func (db *DB) GetUserCreds(userID string, ctx context.Context) (*auth.User, erro
 	return user, nil
 }
 
-func (db *DB) CreateUser(ctx context.Context, login string, passwordHash string) (*auth.User, error) {
+func (db *DB) CreateUser(ctx context.Context, userID string, login string, passwordHash string) (*auth.User, error) {
 	newUser := &auth.User{
-		Id:       uuid.New().String(),
+		Id:       userID,
 		Login:    login,
 		Password: passwordHash,
 	}
@@ -41,6 +53,7 @@ func (db *DB) CreateUser(ctx context.Context, login string, passwordHash string)
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
 			log.Print("user with this id already exists, trying again")
 
+			// TODO: хз надо ли это вообще
 			newUser.Id = uuid.New().String()
 			_, err = tx.Exec(ctx, query, newUser.Id, newUser.Login, newUser.Password)
 			if err != nil {
@@ -62,6 +75,6 @@ func (db *DB) CreateUser(ctx context.Context, login string, passwordHash string)
 		log.Print(err)
 		return nil, err
 	}
-
+	newUser.Authenticated = true
 	return newUser, nil
 }

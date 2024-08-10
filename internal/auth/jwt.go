@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
 	"net/http"
 	"time"
 )
@@ -13,8 +12,7 @@ type JWT struct {
 	secret string
 }
 
-func (j *JWT) GenerateToken() (string, error) {
-	userID := uuid.New().String()
+func (j *JWT) GenerateToken(userID string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &Claims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
@@ -62,17 +60,28 @@ func (j *JWT) CheckToken(r *http.Request) bool {
 	return true
 }
 
-func (j *JWT) AddTokenToCookies(w *http.ResponseWriter, r *http.Request) (context.Context, error) {
-	token, err := j.GenerateToken()
+func (j *JWT) GetUserIdFromToken(r *http.Request) (string, error) {
+	cookie, err := r.Cookie("Authorization")
 
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
+	claims, err := j.ParseToken(cookie.Value)
+	if err != nil {
+		return "", err
+	}
+	if claims.UserID == "" {
+		return "", err
+	}
+	return claims.UserID, nil
+}
+
+func (j *JWT) AddTokenToCookies(w *http.ResponseWriter, r *http.Request, token string) (context.Context, error) {
 	http.SetCookie(*w, &http.Cookie{
 		Name:    "Authorization",
 		Value:   token,
-		Expires: time.Now().Add(5 * time.Hour),
+		Expires: time.Now().Add(24 * time.Hour),
 	})
 
 	claims, err := j.ParseToken(token)
