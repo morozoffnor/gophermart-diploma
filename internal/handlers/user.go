@@ -59,7 +59,7 @@ func (h *Handlers) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	}
 	r = r.WithContext(ctx)
 
-	// создаём запись о юзере в бд
+	// хешируем пароль, создаём запись о юзере в бд
 	hashedPass := h.auth.HashPassword(user.Password)
 	_, err = h.db.CreateUser(ctx, user.Id, user.Login, hashedPass)
 	if err != nil {
@@ -67,6 +67,57 @@ func (h *Handlers) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
+
+	w.Header().Set("Content-Type", "text/plain, utf-8")
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *Handlers) LoginUser(w http.ResponseWriter, r *http.Request) {
+	// получаем тело, распаковываем его, если надо
+	body, err := bodyHelper.GetBody(r)
+	if err != nil {
+		log.Print(err)
+		http.Error(w, "Failed parsing body", http.StatusBadRequest)
+		return
+	}
+	user := &auth.User{}
+
+	// вытаскиваем джейсонку в структуру
+	err = json.Unmarshal(body, &user)
+	if err != nil {
+		log.Print(err)
+		http.Error(w, "Invalid json", http.StatusUnprocessableEntity)
+		return
+	}
+
+	// находим такого юзера в бд
+	dbUser, err := h.db.GetUserByLogin(r.Context(), user.Login)
+	if err != nil {
+		log.Print(err)
+		http.Error(w, "No such user", http.StatusUnauthorized)
+		return
+	}
+
+	// хешируем присланный пароль, сравниваем с хешем из бд
+	hashedPass := h.auth.HashPassword(user.Password)
+	if dbUser.Password != hashedPass {
+		http.Error(w, "Wrong login/pass", http.StatusUnauthorized)
+		return
+	}
+
+	// добавляем токен в куки
+	token, err := h.auth.Jwt.GenerateToken(dbUser.Id)
+	if err != nil {
+		log.Print(err)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+	ctx, err := h.auth.Jwt.AddTokenToCookies(&w, r, token)
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	r = r.WithContext(ctx)
 
 	w.Header().Set("Content-Type", "text/plain, utf-8")
 	w.WriteHeader(http.StatusOK)

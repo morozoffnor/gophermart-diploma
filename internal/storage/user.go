@@ -21,13 +21,25 @@ func (db *DB) UserExists(ctx context.Context, login string) (bool, error) {
 	return exists, err
 }
 
-func (db *DB) GetUserCreds(userID string, ctx context.Context) (*auth.User, error) {
+func (db *DB) GetUserByID(ctx context.Context, userID string) (*auth.User, error) {
 	user := &auth.User{
 		Id: userID,
 	}
 
 	query := "SELECT login, password FROM users where id=$1"
 	err := db.pool.QueryRow(ctx, query, userID).Scan(&user.Login, &user.Password)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func (db *DB) GetUserByLogin(ctx context.Context, login string) (*auth.User, error) {
+	user := &auth.User{}
+
+	query := "SELECT id, login, password FROM users where login=$1"
+	err := db.pool.QueryRow(ctx, query, login).Scan(&user.Id, &user.Login, &user.Password)
 	if err != nil {
 		return nil, err
 	}

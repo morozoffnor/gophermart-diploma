@@ -2,6 +2,7 @@ package server
 
 import (
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/morozoffnor/gophermart-diploma/internal/config"
 	"github.com/morozoffnor/gophermart-diploma/internal/handlers"
 	"log"
@@ -10,7 +11,15 @@ import (
 
 func NewRouter(h *handlers.Handlers) *chi.Mux {
 	r := chi.NewRouter()
-	r.Post("/api/user/register", h.RegisterUser)
+	r.Use(middleware.Logger)
+	r.Group(func(r chi.Router) {
+		// No-auth endpoints
+		r.Post("/api/user/register", h.RegisterUser)
+		r.Post("/api/user/login", h.LoginUser)
+	})
+	r.Group(func(r chi.Router) {
+		// Auth endpoints
+	})
 	return r
 }
 
