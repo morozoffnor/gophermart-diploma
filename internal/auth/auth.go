@@ -3,7 +3,6 @@ package auth
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/morozoffnor/gophermart-diploma/internal/config"
 )
 
@@ -16,11 +15,6 @@ type Auth struct {
 	Jwt *JWT
 }
 
-type Claims struct {
-	jwt.RegisteredClaims
-	UserID string `json:"user_id"`
-}
-
 type User struct {
 	Id            string `json:"userID"`
 	Login         string `json:"login"`
@@ -29,6 +23,8 @@ type User struct {
 }
 
 func New(cfg *config.Config) *Auth {
+	// мне просто показалось, что было бы прикольно встроить auth и jwt прям в
+	//   структуру с хендлерами, чтобы можно было проще пользоваться всеми методами
 	return &Auth{cfg: cfg, Jwt: &JWT{secret: "supersecret"}}
 }
 

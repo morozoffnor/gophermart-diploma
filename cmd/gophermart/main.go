@@ -6,6 +6,7 @@ import (
 	"github.com/morozoffnor/gophermart-diploma/internal/auth"
 	"github.com/morozoffnor/gophermart-diploma/internal/config"
 	"github.com/morozoffnor/gophermart-diploma/internal/handlers"
+	"github.com/morozoffnor/gophermart-diploma/internal/middlewares"
 	"github.com/morozoffnor/gophermart-diploma/internal/server"
 	"github.com/morozoffnor/gophermart-diploma/internal/storage"
 	"golang.org/x/sync/errgroup"
@@ -21,7 +22,8 @@ func main() {
 	a := auth.New(cfg)
 	db := storage.New(cfg, ctx)
 	h := handlers.New(cfg, a, db)
-	r := server.NewRouter(h)
+	m := middlewares.New(a, db)
+	r := server.NewRouter(h, m)
 	s := server.NewSever(cfg, r)
 
 	go func() {

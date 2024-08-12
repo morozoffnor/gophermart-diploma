@@ -12,6 +12,11 @@ type JWT struct {
 	secret string
 }
 
+type Claims struct {
+	jwt.RegisteredClaims
+	UserID string `json:"user_id"`
+}
+
 func (j *JWT) GenerateToken(userID string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &Claims{
 		RegisteredClaims: jwt.RegisteredClaims{
