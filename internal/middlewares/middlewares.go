@@ -6,6 +6,7 @@ import (
 	"github.com/morozoffnor/gophermart-diploma/internal/storage"
 	"log"
 	"net/http"
+	"time"
 )
 
 type Middlewares struct {
@@ -34,6 +35,13 @@ func (m *Middlewares) Auth() func(next http.Handler) http.Handler {
 			if err != nil {
 				log.Print(err)
 				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			}
+
+			// обновить токен, если скоро стухнет
+			if claims.ExpiresAt.Add(time.Hour).After(time.Now()) {
+				token, _ := m.auth.Jwt.GenerateToken(claims.UserID)
+				ctx, _ := m.auth.Jwt.AddTokenToCookies(&w, r, token)
+				r = r.WithContext(ctx)
 			}
 
 			ctx := context.WithValue(r.Context(), auth.ContextUserID, claims.UserID)

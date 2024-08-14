@@ -16,6 +16,14 @@ type DB struct {
 	cfg  *config.Config
 }
 
+type Order struct {
+	Number     string `json:"number"`
+	Status     int    `json:"status"`
+	Accrual    int    `json:"accrual"`
+	UserID     string
+	UploadedAt time.Time `json:"uploaded_ats"`
+}
+
 func New(cfg *config.Config, ctx context.Context) *DB {
 	db := &DB{
 		cfg: cfg,
