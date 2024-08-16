@@ -21,9 +21,9 @@ type AccrualClient struct {
 }
 
 type OrderStatus struct {
-	Order   string `json:"order"`
-	Status  string `json:"status"`
-	Accrual int    `json:"accrual"`
+	Order   string  `json:"order"`
+	Status  string  `json:"status"`
+	Accrual float64 `json:"accrual"`
 }
 
 func NewClient(cfg *config.Config) *AccrualClient {
