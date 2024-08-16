@@ -111,3 +111,13 @@ func (db *DB) UpdateBalance(ctx context.Context, userID string, value float64) e
 	}
 	return err
 }
+
+func (db *DB) UpdateWithdrawals(ctx context.Context, userID string, value float64) error {
+	query := "UPDATE users SET withdrawn = withdrawn + $2 where id =$1"
+	_, err := db.pool.Exec(ctx, query, userID, value)
+	if err != nil {
+		log.Printf("error while updating withdrawn, userid %s", userID)
+		return err
+	}
+	return err
+}

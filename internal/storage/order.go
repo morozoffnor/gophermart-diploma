@@ -59,6 +59,10 @@ func (db *DB) GetOrdersList(ctx context.Context, userID string) ([]*Order, error
 	return result, err
 }
 
+//func (db *DB) GetUnprocessedOrders() []Order {
+//
+//}
+
 func (db *DB) AddOrder(ctx context.Context, userID string, orderID string) error {
 	query := "INSERT INTO orders (id, status, user_id, accrual) VALUES ($1, $2, $3, $4)"
 	_, err := db.pool.Exec(ctx, query, orderID, StatusNew, userID, 0)

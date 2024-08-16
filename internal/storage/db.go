@@ -29,6 +29,12 @@ type BalanceInfo struct {
 	Withdrawn float64 `json:"withdrawn"`
 }
 
+type WithdrawalInfo struct {
+	OrderNumber string    `json:"order"`
+	Sum         float64   `json:"sum"`
+	ProcessedAt time.Time `json:"processed_at"`
+}
+
 func New(cfg *config.Config, ctx context.Context) *DB {
 	db := &DB{
 		cfg: cfg,
