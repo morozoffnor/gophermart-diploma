@@ -24,6 +24,11 @@ type Order struct {
 	UploadedAt time.Time `json:"uploaded_at"`
 }
 
+type BalanceInfo struct {
+	Current   float64 `json:"current"`
+	Withdrawn float64 `json:"withdrawn"`
+}
+
 func New(cfg *config.Config, ctx context.Context) *DB {
 	db := &DB{
 		cfg: cfg,

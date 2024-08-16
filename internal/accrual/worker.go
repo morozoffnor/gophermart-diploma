@@ -123,5 +123,13 @@ func (w *Worker) ProcessOrder(order string) {
 		w.AddToQueue(order)
 		return
 	}
+	err = w.db.UpdateBalance(ctx, dbOrder.UserID, orderStatus.Accrual)
+	if err != nil {
+		// если ошибка с бд, пробуем ещё раз
+		log.Print(err)
+		time.Sleep(5 * time.Second)
+		w.AddToQueue(order)
+		return
+	}
 	return
 }

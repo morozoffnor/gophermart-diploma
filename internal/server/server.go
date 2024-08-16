@@ -23,6 +23,8 @@ func NewRouter(h *handlers.Handlers, m *middlewares.Middlewares) *chi.Mux {
 		// эндпоинты с авторизацией
 		r.Get("/api/user/orders", h.GetOrders)
 		r.Post("/api/user/orders", h.UploadOrder)
+
+		r.Get("/api/user/balance", h.GetBalance)
 	})
 	return r
 }

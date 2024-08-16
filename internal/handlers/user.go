@@ -122,3 +122,22 @@ func (h *Handlers) LoginUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain, utf-8")
 	w.WriteHeader(http.StatusOK)
 }
+
+func (h *Handlers) GetBalance(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value(auth.ContextUserID).(string)
+	balance, err := h.db.GetBalance(r.Context(), userID)
+	if err != nil {
+		log.Print(err)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+	resp, err := json.Marshal(balance)
+	if err != nil {
+		log.Print(err)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(resp)
+}

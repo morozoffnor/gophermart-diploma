@@ -90,3 +90,24 @@ func (db *DB) CreateUser(ctx context.Context, userID string, login string, passw
 	newUser.Authenticated = true
 	return newUser, nil
 }
+
+func (db *DB) GetBalance(ctx context.Context, userID string) (BalanceInfo, error) {
+	query := "SELECT balance, withdrawn FROM users WHERE id=$1"
+	var balance BalanceInfo
+	err := db.pool.QueryRow(ctx, query, userID).Scan(&balance.Current, &balance.Withdrawn)
+	if err != nil {
+		log.Printf("error while getting balance, userid %s", userID)
+		return balance, err
+	}
+	return balance, nil
+}
+
+func (db *DB) UpdateBalance(ctx context.Context, userID string, value float64) error {
+	query := "UPDATE users SET balance = balance + $2 where id =$1"
+	_, err := db.pool.Exec(ctx, query, userID, value)
+	if err != nil {
+		log.Printf("error while updating balance, userid %s", userID)
+		return err
+	}
+	return err
+}
