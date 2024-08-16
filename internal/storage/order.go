@@ -32,6 +32,33 @@ func (db *DB) GetOrder(ctx context.Context, orderID string) (*Order, error) {
 	}
 	return order, nil
 }
+
+func (db *DB) GetOrdersList(ctx context.Context, userID string) ([]*Order, error) {
+	query := "SELECT id, status, accrual, uploaded_at FROM orders WHERE user_id=$1"
+	rows, err := db.pool.Query(ctx, query, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var result []*Order
+	for rows.Next() {
+		var order Order
+		order.UserID = userID
+		err = rows.Scan(&order.Number, &order.Status, &order.Accrual, &order.UploadedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, &order)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return result, err
+}
+
 func (db *DB) AddOrder(ctx context.Context, userID string, orderID string) error {
 	query := "INSERT INTO orders (id, status, user_id, accrual) VALUES ($1, $2, $3, $4)"
 	_, err := db.pool.Exec(ctx, query, orderID, StatusNew, userID, 0)

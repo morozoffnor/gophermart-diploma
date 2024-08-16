@@ -21,7 +21,7 @@ type Order struct {
 	Status     string  `json:"status"`
 	Accrual    float64 `json:"accrual"`
 	UserID     string
-	UploadedAt time.Time `json:"uploaded_ats"`
+	UploadedAt time.Time `json:"uploaded_at"`
 }
 
 func New(cfg *config.Config, ctx context.Context) *DB {

@@ -21,6 +21,7 @@ func NewRouter(h *handlers.Handlers, m *middlewares.Middlewares) *chi.Mux {
 	r.Group(func(r chi.Router) {
 		r.Use(m.Auth())
 		// эндпоинты с авторизацией
+		r.Get("/api/user/orders", h.GetOrders)
 		r.Post("/api/user/orders", h.UploadOrder)
 	})
 	return r
