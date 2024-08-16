@@ -52,6 +52,7 @@ func (h *Handlers) UploadOrder(w http.ResponseWriter, r *http.Request) {
 	}
 	// если не существует, то создаём новый заказ
 	err = h.db.AddOrder(r.Context(), userID, orderNumber)
+	h.worker.AddToQueue(orderNumber)
 	if err != nil {
 		log.Print(err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)

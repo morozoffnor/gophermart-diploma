@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/morozoffnor/gophermart-diploma/internal/accrual"
 	"github.com/morozoffnor/gophermart-diploma/internal/auth"
 	"github.com/morozoffnor/gophermart-diploma/internal/config"
 	"github.com/morozoffnor/gophermart-diploma/internal/handlers"
@@ -21,7 +22,9 @@ func main() {
 	cfg := config.New()
 	a := auth.New(cfg)
 	db := storage.New(cfg, ctx)
-	h := handlers.New(cfg, a, db)
+	c := accrual.NewClient(cfg)
+	w := accrual.NewWorker(cfg, db, c)
+	h := handlers.New(cfg, a, db, w)
 	m := middlewares.New(a, db)
 	r := server.NewRouter(h, m)
 	s := server.NewSever(cfg, r)

@@ -7,7 +7,6 @@ import (
 )
 
 func TestConfig_UpdateByEnv(t *testing.T) {
-	t.Setenv("RUN_ADDRESS", ":8080")
 
 	type envs []struct {
 		name  string

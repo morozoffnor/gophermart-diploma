@@ -12,12 +12,12 @@ func TestValid(t *testing.T) {
 		want  bool
 	}{
 		{
-			name:  "[Positive] Check if int is valid",
+			name:  "[Positive] Check if number is valid",
 			value: "12345678903",
 			want:  true,
 		},
 		{
-			name:  "[Negative] Check if int is invalid",
+			name:  "[Negative] Check if number is invalid",
 			value: "243432433334",
 			want:  false,
 		},

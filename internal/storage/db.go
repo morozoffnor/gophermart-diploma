@@ -18,7 +18,7 @@ type DB struct {
 
 type Order struct {
 	Number     string `json:"number"`
-	Status     int    `json:"status"`
+	Status     string `json:"status"`
 	Accrual    int    `json:"accrual"`
 	UserID     string
 	UploadedAt time.Time `json:"uploaded_ats"`
