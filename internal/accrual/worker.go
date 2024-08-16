@@ -141,5 +141,4 @@ func (w *Worker) ProcessOrder(order string) {
 		w.AddToQueue(order)
 		return
 	}
-	return
 }

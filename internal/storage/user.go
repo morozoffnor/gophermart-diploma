@@ -23,7 +23,7 @@ func (db *DB) UserExists(ctx context.Context, login string) (bool, error) {
 
 func (db *DB) GetUserByID(ctx context.Context, userID string) (*auth.User, error) {
 	user := &auth.User{
-		Id: userID,
+		ID: userID,
 	}
 
 	query := "SELECT login, password FROM users where id=$1"
@@ -39,7 +39,7 @@ func (db *DB) GetUserByLogin(ctx context.Context, login string) (*auth.User, err
 	user := &auth.User{}
 
 	query := "SELECT id, login, password FROM users where login=$1"
-	err := db.pool.QueryRow(ctx, query, login).Scan(&user.Id, &user.Login, &user.Password)
+	err := db.pool.QueryRow(ctx, query, login).Scan(&user.ID, &user.Login, &user.Password)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func (db *DB) GetUserByLogin(ctx context.Context, login string) (*auth.User, err
 
 func (db *DB) CreateUser(ctx context.Context, userID string, login string, passwordHash string) (*auth.User, error) {
 	newUser := &auth.User{
-		Id:       userID,
+		ID:       userID,
 		Login:    login,
 		Password: passwordHash,
 	}
@@ -59,15 +59,15 @@ func (db *DB) CreateUser(ctx context.Context, userID string, login string, passw
 		return nil, err
 	}
 	query := "INSERT INTO users (id, login, password) VALUES ($1, $2, $3)"
-	_, err = tx.Exec(ctx, query, newUser.Id, newUser.Login, newUser.Password)
+	_, err = tx.Exec(ctx, query, newUser.ID, newUser.Login, newUser.Password)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
 			log.Print("user with this id already exists, trying again")
 
 			// TODO: хз надо ли это вообще
-			newUser.Id = uuid.New().String()
-			_, err = tx.Exec(ctx, query, newUser.Id, newUser.Login, newUser.Password)
+			newUser.ID = uuid.New().String()
+			_, err = tx.Exec(ctx, query, newUser.ID, newUser.Login, newUser.Password)
 			if err != nil {
 				log.Print("there is no way there are two identical uuids generated in a row, returning err: ", err)
 				return nil, err

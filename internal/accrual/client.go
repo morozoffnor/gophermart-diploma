@@ -50,6 +50,7 @@ func (c *AccrualClient) GetOrderStatus(orderID string) (*OrderStatus, error) {
 		log.Print("Internal error")
 		return nil, &ErrorInternalError{}
 	default:
+		defer response.Body.Close()
 		body, err := io.ReadAll(response.Body)
 		if err != nil {
 			return nil, err

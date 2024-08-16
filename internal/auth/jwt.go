@@ -65,7 +65,7 @@ func (j *JWT) CheckToken(r *http.Request) bool {
 	return true
 }
 
-func (j *JWT) GetUserIdFromToken(r *http.Request) (string, error) {
+func (j *JWT) GetUserIDFromToken(r *http.Request) (string, error) {
 	cookie, err := r.Cookie("Authorization")
 
 	if err != nil {

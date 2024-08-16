@@ -20,6 +20,11 @@ func (h *Handlers) GetOrders(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp, err := json.Marshal(orders)
+	if err != nil {
+		log.Print(err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(resp)
 }

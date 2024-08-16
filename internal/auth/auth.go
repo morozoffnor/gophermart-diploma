@@ -16,7 +16,7 @@ type Auth struct {
 }
 
 type User struct {
-	Id            string `json:"userID"`
+	ID            string `json:"userID"`
 	Login         string `json:"login"`
 	Password      string `json:"password"`
 	Authenticated bool

@@ -18,7 +18,7 @@ func (h *Handlers) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	user := &auth.User{
-		Id: uuid.New().String(),
+		ID: uuid.New().String(),
 	}
 
 	// вытаскиваем джейсонку в структуру
@@ -44,7 +44,7 @@ func (h *Handlers) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// генерим новый JWT с айди юзера
-	token, err := h.auth.Jwt.GenerateToken(user.Id)
+	token, err := h.auth.Jwt.GenerateToken(user.ID)
 	if err != nil {
 		log.Print(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -52,16 +52,15 @@ func (h *Handlers) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// добавляем токен в куки
-	ctx, err := h.auth.Jwt.AddTokenToCookies(&w, r, token)
+	_, err = h.auth.Jwt.AddTokenToCookies(&w, r, token)
 	if err != nil {
 		log.Print(err)
 		return
 	}
-	r = r.WithContext(ctx)
 
 	// хешируем пароль, создаём запись о юзере в бд
 	hashedPass := h.auth.HashPassword(user.Password)
-	_, err = h.db.CreateUser(ctx, user.Id, user.Login, hashedPass)
+	_, err = h.db.CreateUser(r.Context(), user.ID, user.Login, hashedPass)
 	if err != nil {
 		log.Print(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -106,18 +105,17 @@ func (h *Handlers) LoginUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// добавляем токен в куки
-	token, err := h.auth.Jwt.GenerateToken(dbUser.Id)
+	token, err := h.auth.Jwt.GenerateToken(dbUser.ID)
 	if err != nil {
 		log.Print(err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
-	ctx, err := h.auth.Jwt.AddTokenToCookies(&w, r, token)
+	_, err = h.auth.Jwt.AddTokenToCookies(&w, r, token)
 	if err != nil {
 		log.Print(err)
 		return
 	}
-	r = r.WithContext(ctx)
 
 	w.Header().Set("Content-Type", "text/plain, utf-8")
 	w.WriteHeader(http.StatusOK)
