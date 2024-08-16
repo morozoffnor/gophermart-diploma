@@ -29,12 +29,14 @@ func (m *Middlewares) Auth() func(next http.Handler) http.Handler {
 			if err != nil {
 				log.Print(err)
 				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				return
 			}
 
 			claims, err := m.auth.Jwt.ParseToken(cookie.Value)
 			if err != nil {
 				log.Print(err)
 				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				return
 			}
 
 			// обновить токен, если скоро стухнет
