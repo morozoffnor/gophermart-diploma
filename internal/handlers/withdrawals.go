@@ -42,23 +42,15 @@ func (h *Handlers) Withdraw(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// проверяем заказ на валидность и существует ли он вообще
+	// проверяем заказ на валидность
 	if !luhn.Valid(withdrawal.OrderNumber) {
 		log.Print("Invalid order number")
 		http.Error(w, "Invalid order number", http.StatusUnprocessableEntity)
 		return
 	}
-	exists, err := h.db.OrderExists(r.Context(), withdrawal.OrderNumber)
-	if err != nil {
-		log.Print(err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-	if !exists {
-		log.Print("Invalid order number")
-		http.Error(w, "Invalid order number", http.StatusUnprocessableEntity)
-		return
-	}
+
+	// нам не нужно проверять существует ли заказ на самом деле,
+	// так что просто продолжаем
 
 	// списываем баллы
 	err = h.db.UpdateBalance(r.Context(), userID, -withdrawal.Sum)
