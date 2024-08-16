@@ -24,8 +24,9 @@ func NewRouter(h *handlers.Handlers, m *middlewares.Middlewares) *chi.Mux {
 		r.Get("/api/user/orders", h.GetOrders)
 		r.Post("/api/user/orders", h.UploadOrder)
 
-		r.Get("/api/user/balance", h.GetBalance)
 		r.Post("/api/user/balance/withdraw", h.Withdraw)
+		r.Get("/api/user/balance", h.GetBalance)
+
 		r.Get("/api/user/withdrawals", h.GetWithdrawals)
 	})
 	return r
