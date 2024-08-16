@@ -38,6 +38,16 @@ func (w *Worker) AddToQueue(order string) {
 	w.queueCh <- order
 }
 
+func (w *Worker) ProcessStaleOrders(ctx context.Context) {
+	orders, err := w.db.GetUnprocessedOrders(ctx)
+	if err != nil {
+		return
+	}
+	for _, order := range orders {
+		w.AddToQueue(order)
+	}
+}
+
 func (w *Worker) ProcessOrder(order string) {
 	orderStatus, err := w.client.GetOrderStatus(order)
 	if err != nil {

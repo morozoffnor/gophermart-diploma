@@ -59,9 +59,33 @@ func (db *DB) GetOrdersList(ctx context.Context, userID string) ([]*Order, error
 	return result, err
 }
 
-//func (db *DB) GetUnprocessedOrders() []Order {
-//
-//}
+func (db *DB) GetUnprocessedOrders(ctx context.Context) ([]string, error) {
+	query := "SELECT id FROM orders where status != 'INVALID' or status != 'PROCESSED'"
+	var result []string
+	rows, err := db.pool.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var item string
+		err = rows.Scan(&item)
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, item)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return result, err
+
+}
 
 func (db *DB) AddOrder(ctx context.Context, userID string, orderID string) error {
 	query := "INSERT INTO orders (id, status, user_id, accrual) VALUES ($1, $2, $3, $4)"
