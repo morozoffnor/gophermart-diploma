@@ -68,7 +68,7 @@ func (db *DB) AddOrder(ctx context.Context, userID string, orderID string) error
 	return nil
 }
 
-func (db *DB) UpdateOrderFromAccrual(ctx context.Context, orderID string, status string, accrual int) error {
+func (db *DB) UpdateOrderFromAccrual(ctx context.Context, orderID string, status string, accrual float64) error {
 	query := "UPDATE orders SET status = $1, accrual = $2 where id = $3"
 	_, err := db.pool.Exec(ctx, query, status, accrual, orderID)
 	if err != nil {
