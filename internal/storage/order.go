@@ -106,7 +106,7 @@ func (db *DB) UpdateOrderFromAccrual(ctx context.Context, orderID string, status
 	if err != nil {
 		return err
 	}
-	balanceQuery := "UPDATE users SET balance = balance + $1 where (SELECT user_id FROM orders where id = $2)"
+	balanceQuery := "UPDATE users SET balance = balance + $1 WHERE id = (SELECT user_id FROM orders WHERE id = $2);"
 	_, err = tx.Exec(ctx, balanceQuery, accrual, orderID)
 	if err != nil {
 		return err

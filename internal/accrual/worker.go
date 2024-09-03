@@ -53,6 +53,7 @@ func (w *Worker) ProcessStaleOrders(ctx context.Context) {
 }
 
 func (w *Worker) ProcessOrder(order string) {
+	log.Print("processing order ", order)
 	orderStatus, err := w.client.GetOrderStatus(order)
 	if err != nil {
 		var terr *ErrorTooManyRequests
