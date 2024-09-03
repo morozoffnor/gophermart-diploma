@@ -25,9 +25,11 @@ func main() {
 	c := accrual.NewClient(cfg)
 	w := accrual.NewWorker(cfg, db, c)
 	h := handlers.New(cfg, a, db, w)
-	m := middlewares.New(a, db)
-	r := server.NewRouter(h, m)
+	authMiddleware := middlewares.NewAuthMiddleware(a)
+	r := server.NewRouter(h, authMiddleware)
 	s := server.NewSever(cfg, r)
+
+	go w.Start(ctx)
 
 	go func() {
 		c := make(chan os.Signal, 1)
@@ -45,11 +47,6 @@ func main() {
 		<-gCtx.Done()
 		return s.Shutdown(context.Background())
 	})
-
-	// если зарегать заказ и, не дождавшись обработки от сервиса начислений, выключить сервис,
-	// то заказ так и останется висеть необработанным в бд. в тз не было такого требования,
-	// но мне показалось логичным при старте сервиса проверять есть ли необработанные заказы
-	go w.ProcessStaleOrders(ctx)
 
 	if err := wg.Wait(); err != nil {
 		fmt.Printf("exit reason: %s", err)

@@ -28,6 +28,10 @@ func NewWorker(cfg *config.Config, db *storage.DB, c *AccrualClient) *Worker {
 
 func (w *Worker) Start(ctx context.Context) {
 	log.Print("Started worker")
+	// если зарегать заказ и, не дождавшись обработки от сервиса начислений, выключить сервис,
+	// то заказ так и останется висеть необработанным в бд. в тз не было такого требования,
+	// но мне показалось логичным при старте сервиса проверять есть ли необработанные заказы
+	go w.ProcessStaleOrders(ctx)
 	for order := range w.queueCh {
 		go w.ProcessOrder(order)
 	}
@@ -80,64 +84,20 @@ func (w *Worker) ProcessOrder(order string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	// достаём заказ из бд
-	dbOrder, err := w.db.GetOrder(ctx, order)
-	if err != nil {
-		// если ошибка с бд, то пробуем ещё раз через 5 секунд
-		log.Print(err)
-		time.Sleep(5 * time.Second)
-		w.AddToQueue(order)
-		return
-	}
-
-	// проверяем статус заказа в бд
-	if dbOrder.Status == storage.StatusProcessed || dbOrder.Status == storage.StatusInvalid {
-		// если заказ уже обработан, то просто выходим
-		log.Printf("order %s already processed", order)
-		return
-	}
-
 	// если система начислений вернула invalid, помечаем у себя тоже
 	if orderStatus.Status == StatusInvalid {
 		log.Printf("order %s in invalid", order)
 		err := w.db.UpdateOrderFromAccrual(ctx, orderStatus.Order, orderStatus.Status, orderStatus.Accrual)
 		if err != nil {
-			// если ошибка с бд, пробуем ещё раз
-			log.Print(err)
-			time.Sleep(5 * time.Second)
 			w.AddToQueue(order)
 			return
 		}
 		return
 	}
 
-	// если заказ есть в системе начислений, то меняем статус у себя на PROCESSING
-	if orderStatus.Status == StatusRegistered || orderStatus.Status == StatusProcessing {
-		err := w.db.UpdateOrderFromAccrual(ctx, orderStatus.Order, storage.StatusProcessing, orderStatus.Accrual)
-		if err != nil {
-			// если ошибка с бд, пробуем ещё раз
-			log.Print(err)
-			time.Sleep(5 * time.Second)
-			w.AddToQueue(order)
-			return
-		}
-		return
-	}
-
-	// меняем статус на PROCESSED, начисляем баллы
+	// обновляем статус и начисляем баллы
 	err = w.db.UpdateOrderFromAccrual(ctx, orderStatus.Order, orderStatus.Status, orderStatus.Accrual)
 	if err != nil {
-		// если ошибка с бд, пробуем ещё раз
-		log.Print(err)
-		time.Sleep(5 * time.Second)
-		w.AddToQueue(order)
-		return
-	}
-	err = w.db.UpdateBalance(ctx, dbOrder.UserID, orderStatus.Accrual)
-	if err != nil {
-		// если ошибка с бд, пробуем ещё раз
-		log.Print(err)
-		time.Sleep(5 * time.Second)
 		w.AddToQueue(order)
 		return
 	}

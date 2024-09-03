@@ -34,11 +34,7 @@ func (c *Config) UpdateByEnv() {
 }
 
 func New() *Config {
-	c := &Config{
-		Addr:              "",
-		DatabaseURI:       "",
-		AccrualSystemAddr: "",
-	}
+	c := &Config{}
 	c.UpdateByFlags(flags)
 	c.UpdateByEnv()
 	return c

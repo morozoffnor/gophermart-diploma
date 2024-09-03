@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"context"
 	"github.com/morozoffnor/gophermart-diploma/internal/accrual"
 	"github.com/morozoffnor/gophermart-diploma/internal/auth"
 	"github.com/morozoffnor/gophermart-diploma/internal/config"
@@ -27,6 +26,5 @@ func New(cfg *config.Config, auth *auth.Auth, db *storage.DB, w *accrual.Worker)
 		db:     db,
 		worker: w,
 	}
-	go w.Start(context.Background())
 	return h
 }

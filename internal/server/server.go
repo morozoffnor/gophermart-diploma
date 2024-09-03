@@ -5,12 +5,11 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/morozoffnor/gophermart-diploma/internal/config"
 	"github.com/morozoffnor/gophermart-diploma/internal/handlers"
-	"github.com/morozoffnor/gophermart-diploma/internal/middlewares"
 	"log"
 	"net/http"
 )
 
-func NewRouter(h *handlers.Handlers, m *middlewares.Middlewares) *chi.Mux {
+func NewRouter(h *handlers.Handlers, auth func(next http.Handler) http.Handler) *chi.Mux {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Group(func(r chi.Router) {
@@ -19,7 +18,7 @@ func NewRouter(h *handlers.Handlers, m *middlewares.Middlewares) *chi.Mux {
 		r.Post("/api/user/login", h.LoginUser)
 	})
 	r.Group(func(r chi.Router) {
-		r.Use(m.Auth())
+		r.Use(auth)
 		// эндпоинты с авторизацией
 		r.Get("/api/user/orders", h.GetOrders)
 		r.Post("/api/user/orders", h.UploadOrder)

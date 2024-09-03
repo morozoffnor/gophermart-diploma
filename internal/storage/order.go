@@ -97,10 +97,20 @@ func (db *DB) AddOrder(ctx context.Context, userID string, orderID string) error
 }
 
 func (db *DB) UpdateOrderFromAccrual(ctx context.Context, orderID string, status string, accrual float64) error {
-	query := "UPDATE orders SET status = $1, accrual = $2 where id = $3"
-	_, err := db.pool.Exec(ctx, query, status, accrual, orderID)
+	tx, err := db.pool.Begin(ctx)
 	if err != nil {
 		return err
 	}
-	return nil
+	query := "UPDATE orders SET status = $1, accrual = $2 where id = $3"
+	_, err = tx.Exec(ctx, query, status, accrual, orderID)
+	if err != nil {
+		return err
+	}
+	balanceQuery := "UPDATE users SET balance = balance + $1 where (SELECT user_id FROM orders where id = $2)"
+	_, err = tx.Exec(ctx, balanceQuery, accrual, orderID)
+	if err != nil {
+		return err
+	}
+	err = tx.Commit(ctx)
+	return err
 }
